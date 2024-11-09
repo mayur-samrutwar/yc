@@ -93,7 +93,7 @@ export default function User() {
                 key={i}
                 title="Advanced Web Development with React & Next.js"
                 instructor="John Doe"
-                videoId="dQw4w9WgXcQ"
+                videoId="salY_Sm6mv4"
                 rating="4.8"
                 students="12,345"
                 category="Trending"
@@ -112,7 +112,7 @@ export default function User() {
                   key={i}
                   title={`${category} Course ${i}`}
                   instructor="Jane Smith"
-                  videoId="dQw4w9WgXcQ"
+                  videoId="salY_Sm6mv4"
                   rating="4.5"
                   students="8,234"
                   category={category}
