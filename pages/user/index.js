@@ -62,7 +62,7 @@ export default function User() {
               </div>
             </div>
             
-            <w3m-button />
+            <w3m-button label="Login" balance="hide" />
           </div>
 
           {/* Tags */}
