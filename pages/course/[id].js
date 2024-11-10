@@ -10,6 +10,8 @@ export default function CourseDetail() {
   const [timeSpent, setTimeSpent] = useState(0);
   const [videoDetails, setVideoDetails] = useState(null);
   const [error, setError] = useState(null);
+  const [walletAddress, setWalletAddress] = useState(null);
+  const [isRegistered, setIsRegistered] = useState(false);
   const router = useRouter();
   const { id } = router.query;
 
@@ -85,13 +87,13 @@ export default function CourseDetail() {
 
   useEffect(() => {
     const checkWalletConnection = async () => {
-      // Replace this with your actual wallet connection logic
-      const walletAddress = await window.ethereum.request({ method: 'eth_requestAccounts' })
+      const address = await window.ethereum.request({ method: 'eth_requestAccounts' })
         .then(accounts => accounts[0])
         .catch(() => null);
 
-      if (walletAddress) {
-        handleLogin(walletAddress); // Call login with wallet address
+      if (address) {
+        setWalletAddress(address);
+        handleLogin(address);
       } else {
         console.log('Wallet not connected');
       }
@@ -105,6 +107,43 @@ export default function CourseDetail() {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
     return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+  };
+
+  const handleRegister = async () => {
+    if (!walletAddress) return;
+
+    const userId = walletAddress.toLowerCase();
+    const courseId = id;
+    const courseDuration = videoDetails?.duration;
+
+    console.log('Registering with the following details:');
+    console.log('User ID:', userId);
+    console.log('Course ID:', courseId);
+    console.log('Course Duration:', courseDuration);
+
+    if (!userId || !courseId || !courseDuration) {
+      console.error('Missing required fields for registration');
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/register-for-course', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId, courseId, courseDuration }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message);
+      }
+      setIsRegistered(true);
+      console.log(data.message);
+    } catch (error) {
+      console.error('Registration failed:', error);
+    }
   };
 
   if (error) {
@@ -223,8 +262,8 @@ export default function CourseDetail() {
 
                 {/* Action Buttons */}
                 <div className="space-y-4">
-                  <Button className="w-full" size="lg">
-                    Register Now
+                  <Button className="w-full" size="lg" onClick={handleRegister} disabled={!walletAddress || isRegistered}>
+                    {isRegistered ? 'Registered' : 'Register Now'}
                   </Button>
                   
                   <Button 

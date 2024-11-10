@@ -25,7 +25,7 @@ export default async function handler(req, res) {
   // User does not exist, create a new user
   await db.collection('users').insertOne({
     userId: lowerCaseUserId,
-    courses: {}
+    courses: []
   });
   return res.status(201).json({ message: 'User created', userId: lowerCaseUserId });
 }
