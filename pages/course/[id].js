@@ -63,6 +63,43 @@ export default function CourseDetail() {
     fetchVideoDetails();
   }, [id]);
 
+  const handleLogin = async (userId) => {
+    try {
+      const response = await fetch('/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message);
+      }
+      console.log(data.message); // Handle successful login
+    } catch (error) {
+      console.error('Login failed:', error);
+    }
+  };
+
+  useEffect(() => {
+    const checkWalletConnection = async () => {
+      // Replace this with your actual wallet connection logic
+      const walletAddress = await window.ethereum.request({ method: 'eth_requestAccounts' })
+        .then(accounts => accounts[0])
+        .catch(() => null);
+
+      if (walletAddress) {
+        handleLogin(walletAddress); // Call login with wallet address
+      } else {
+        console.log('Wallet not connected');
+      }
+    };
+
+    checkWalletConnection();
+  }, []);
+
   // Format seconds into MM:SS
   const formatTime = (seconds) => {
     const minutes = Math.floor(seconds / 60);

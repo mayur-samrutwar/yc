@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import Navbar from '@/components/Navbar';
+import { useAccount } from 'wagmi';
 
 const CourseCard = ({ title, instructor, videoId, rating, students, category }) => (
   <div className="group">
@@ -40,10 +41,41 @@ const CourseCard = ({ title, instructor, videoId, rating, students, category }) 
 );
 
 export default function User() {
+  const { isConnected, address } = useAccount();
+
+  useEffect(() => {
+    if (isConnected) {
+      console.log('Wallet is connected:', address);
+      handleLogin(address); // Call login function with wallet address
+    } else {
+      console.log('Wallet not connected');
+    }
+  }, [isConnected, address]);
+
+  const handleLogin = async (userId) => {
+    console.log('Attempting to log in with userId:', userId);
+    try {
+      const response = await fetch('/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message);
+      }
+      console.log('Login successful:', data.message);
+    } catch (error) {
+      console.error('Login failed:', error);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-white">
       <Navbar />
-      
       <main className="max-w-7xl mx-auto px-6 py-8">
         {/* Trending Section */}
         <section className="mb-12">
