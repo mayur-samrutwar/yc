@@ -233,6 +233,12 @@ export default function CourseDetail() {
     category: "Web Development"
   };
 
+  const progressPercentage = courseDetails?.timeSpent && videoDetails?.duration
+    ? (courseDetails.timeSpent / videoDetails.duration) * 100 
+    : 0;
+
+  const canTakeExam = progressPercentage >= 70;
+
   return (
     <div className="min-h-screen bg-background relative">
       <Navbar />
@@ -324,10 +330,21 @@ export default function CourseDetail() {
                     variant="outline" 
                     className="w-full" 
                     size="lg"
-                    disabled
+                    disabled={!canTakeExam || !isRegistered}
+                    onClick={() => alert('Exam system coming soon!')}
                   >
-                    Mint Certificate
+                    {canTakeExam ? 'Take Exam' : `Complete ${Math.round(progressPercentage)}% of ${formatTime(videoDetails?.duration || 0)}`}
                   </Button>
+
+                  {/* Optional: Add a progress indicator */}
+                  {isRegistered && (
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div 
+                        className="bg-primary h-2 rounded-full transition-all duration-300" 
+                        style={{ width: `${Math.min(progressPercentage, 100)}%` }}
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
