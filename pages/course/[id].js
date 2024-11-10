@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Star } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import { useRouter } from 'next/router';
+import { useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
+import ycABI from '@/contracts/abi/yc.json';
 
 export default function CourseDetail() {
   const [rating, setRating] = useState(0);
@@ -16,6 +18,57 @@ export default function CourseDetail() {
   const [examStatus, setExamStatus] = useState('not_started');
   const router = useRouter();
   const { id } = router.query;
+
+  const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS;
+  const { writeContract, data: hash } = useWriteContract();
+  const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({
+    hash,
+  });
+
+  const handleMintCertificate = async () => {
+    try {
+      await writeContract({
+        address: CONTRACT_ADDRESS,
+        abi: ycABI,
+        functionName: 'mint',
+        args: [] // mint function doesn't take any arguments as per your ABI
+      });
+    } catch (error) {
+      console.error('Error minting certificate:', error);
+      alert('Failed to mint certificate. Please try again.');
+    }
+  };
+
+  useEffect(() => {
+    if (isConfirmed) {
+      updateCertificationStatus();
+    }
+  }, [isConfirmed]);
+
+  const updateCertificationStatus = async () => {
+    try {
+      const response = await fetch('/api/submit-exam', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: walletAddress.toLowerCase(),
+          courseId: id,
+          examStatus: 'certified'
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update certification status');
+      }
+
+      setExamStatus('certified');
+    } catch (error) {
+      console.error('Error updating certification status:', error);
+      alert('Certificate minted but status update failed. Please contact support.');
+    }
+  };
 
   useEffect(() => {
     let interval;
@@ -345,10 +398,13 @@ export default function CourseDetail() {
                     variant="outline"
                     className="w-full"
                     size="lg"
-                    disabled={examStatus !== 'passed'}
-                    onClick={() => alert('Certificate minted successfully!')}
+                    disabled={examStatus !== 'passed' || isConfirming}
+                    onClick={handleMintCertificate}
                   >
-                    {examStatus === 'passed' ? 'Mint Certificate' : 'Complete Exam to Mint'}
+                    {isConfirming ? 'Minting...' : 
+                     examStatus === 'certified' ? 'Certified' :
+                     examStatus === 'passed' ? 'Mint Certificate' : 
+                     'Complete Exam to Mint'}
                   </Button>
 
                   {/* Optional: Add a progress indicator */}
