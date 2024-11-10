@@ -52,6 +52,7 @@ export default function CourseDetail() {
         }
         
         setVideoDetails(data);
+        console.log('Video Duration (seconds):', data.duration);
         setError(null);
       } catch (err) {
         setError(err.message);

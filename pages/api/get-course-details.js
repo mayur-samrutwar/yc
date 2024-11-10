@@ -14,7 +14,7 @@ export default async function handler(req, res) {
     });
 
     const response = await youtube.videos.list({
-      part: ['snippet', 'statistics'],
+      part: ['snippet', 'statistics', 'contentDetails'],
       id: id,
     });
 
@@ -28,6 +28,7 @@ export default async function handler(req, res) {
       channelName: video.snippet.channelTitle,
       description: video.snippet.description,
       videoId: id,
+      duration: parseDuration(video.contentDetails.duration),
     };
 
     return res.status(200).json(videoDetails);
@@ -35,4 +36,16 @@ export default async function handler(req, res) {
     console.error('Error fetching video info:', error);
     return res.status(500).json({ error: 'Internal Server Error' });
   }
+}
+
+function parseDuration(duration) {
+  const match = duration.match(/PT(\d+H)?(\d+M)?(\d+S)?/);
+  
+  const hours = (match[1] || '').replace('H', '');
+  const minutes = (match[2] || '').replace('M', '');
+  const seconds = (match[3] || '').replace('S', '');
+
+  return (hours ? parseInt(hours) * 3600 : 0) +
+         (minutes ? parseInt(minutes) * 60 : 0) +
+         (seconds ? parseInt(seconds) : 0);
 }
