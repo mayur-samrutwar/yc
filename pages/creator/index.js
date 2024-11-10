@@ -173,7 +173,7 @@ export default function Creator() {
                       Verify ownership of {channelName}
                     </Label>
                     <p className="text-sm text-gray-500 mb-4">
-                      Please scan the QR code to verify that you own the YouTube channel "{channelName}"
+                      Please scan the QR code to verify that you own the YouTube channel {channelName}
                     </p>
                     <div className="flex justify-center p-4">
                       <QRCode value={qrUrl} size={256} />
