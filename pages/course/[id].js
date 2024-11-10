@@ -13,6 +13,7 @@ export default function CourseDetail() {
   const [walletAddress, setWalletAddress] = useState(null);
   const [isRegistered, setIsRegistered] = useState(false);
   const [courseDetails, setCourseDetails] = useState(null);
+  const [examStatus, setExamStatus] = useState('not_taken');
   const router = useRouter();
   const { id } = router.query;
 
@@ -331,9 +332,19 @@ export default function CourseDetail() {
                     className="w-full" 
                     size="lg"
                     disabled={!canTakeExam || !isRegistered}
-                    onClick={() => alert('Exam system coming soon!')}
+                    onClick={() => router.push(`/exam/${id}`)}
                   >
                     {canTakeExam ? 'Take Exam' : `Complete ${Math.round(progressPercentage)}% of ${formatTime(videoDetails?.duration || 0)}`}
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    size="lg"
+                    disabled={examStatus !== 'passed'}
+                    onClick={() => alert('Certificate minted successfully!')}
+                  >
+                    {examStatus === 'passed' ? 'Mint Certificate' : 'Complete Exam to Mint'}
                   </Button>
 
                   {/* Optional: Add a progress indicator */}
