@@ -13,7 +13,7 @@ export default function CourseDetail() {
   const [walletAddress, setWalletAddress] = useState(null);
   const [isRegistered, setIsRegistered] = useState(false);
   const [courseDetails, setCourseDetails] = useState(null);
-  const [examStatus, setExamStatus] = useState('not_taken');
+  const [examStatus, setExamStatus] = useState('not_started');
   const router = useRouter();
   const { id } = router.query;
 
@@ -104,11 +104,14 @@ export default function CourseDetail() {
 
         const data = await response.json();
         if (response.ok) {
+          console.log('Course details with exam status:', data);
           setCourseDetails(data);
           setIsRegistered(true);
+          setExamStatus(data.examStatus || 'not_started');
         } else {
           setCourseDetails(null);
           setIsRegistered(false);
+          setExamStatus('not_started');
         }
       } catch (error) {
         console.error('Error fetching course details:', error);
@@ -321,6 +324,7 @@ export default function CourseDetail() {
 
                 {/* Action Buttons */}
                 <div className="space-y-4">
+                  {console.log('Rendering with exam status:', examStatus)}
                   {!isRegistered && (
                     <Button className="w-full" size="lg" onClick={handleRegister} disabled={!walletAddress}>
                       Register Now
