@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Star } from 'lucide-react';
+import Navbar from '@/components/Navbar';
 
 export default function CourseDetail() {
   const [rating, setRating] = useState(0);
@@ -52,6 +53,7 @@ export default function CourseDetail() {
 
   return (
     <div className="min-h-screen bg-background relative">
+      <Navbar />
       <main className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content */}
