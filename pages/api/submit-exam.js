@@ -5,40 +5,13 @@ export default async function handler(req, res) {
     return res.status(405).json({ message: 'Method not allowed' });
   }
 
-  const { userId, courseId, answers } = req.body;
+  const { userId, courseId, examStatus } = req.body;
 
-  if (!userId || !courseId || !answers) {
-    return res.status(400).json({ message: 'User ID, Course ID, and answers are required' });
+  if (!userId || !courseId || !examStatus) {
+    return res.status(400).json({ message: 'User ID, Course ID, and exam status are required' });
   }
 
   try {
-    // First, generate the exam questions
-    const examResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/generate-exam`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ courseId }),
-    });
-
-    if (!examResponse.ok) {
-      throw new Error('Failed to generate exam');
-    }
-
-    const { questions } = await examResponse.json();
-
-    // Calculate score
-    let correctAnswers = 0;
-    answers.forEach((userAnswer, index) => {
-      if (userAnswer === questions[index].correctAnswer) {
-        correctAnswers++;
-      }
-    });
-
-    const score = (correctAnswers / questions.length) * 100;
-    const passed = score >= 50;
-
-    // Update user's exam status in database
     const { db } = await connectToDatabase();
     
     const result = await db.collection('users').updateOne(
@@ -48,8 +21,7 @@ export default async function handler(req, res) {
       },
       { 
         $set: { 
-          'courses.$.examStatus': passed ? 'passed' : 'failed',
-          'courses.$.examScore': score
+          'courses.$.examStatus': examStatus
         } 
       }
     );
@@ -59,14 +31,12 @@ export default async function handler(req, res) {
     }
 
     return res.status(200).json({ 
-      score,
-      passed,
-      totalQuestions: questions.length,
-      correctAnswers
+      message: 'Exam status updated successfully',
+      examStatus
     });
 
   } catch (error) {
-    console.error('Error submitting exam:', error);
+    console.error('Error updating exam status:', error);
     return res.status(500).json({ message: 'Internal server error' });
   }
 }
