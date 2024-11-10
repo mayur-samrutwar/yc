@@ -28,7 +28,8 @@ export default async function handler(req, res) {
           courses: {
             courseId,
             courseDuration,
-            timeSpent: 0
+            timeSpent: 0,
+            examStatus: 'not_started'
           }
         }
       }
