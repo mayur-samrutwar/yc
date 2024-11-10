@@ -12,34 +12,57 @@ export default function CourseDetail() {
   const [error, setError] = useState(null);
   const [walletAddress, setWalletAddress] = useState(null);
   const [isRegistered, setIsRegistered] = useState(false);
+  const [courseDetails, setCourseDetails] = useState(null);
   const router = useRouter();
   const { id } = router.query;
 
   useEffect(() => {
     let interval;
+    let updateViewTimeInterval;
 
     const handleVisibilityChange = () => {
       if (document.visibilityState === "visible") {
         interval = setInterval(() => {
           setTimeSpent(prev => prev + 1);
         }, 1000);
+
+        if (isRegistered && walletAddress && id) {
+          updateViewTimeInterval = setInterval(async () => {
+            try {
+              const response = await fetch('/api/update-view-time', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  userId: walletAddress.toLowerCase(),
+                  courseId: id
+                }),
+              });
+
+              if (!response.ok) {
+                console.error('Failed to update view time');
+              }
+            } catch (error) {
+              console.error('Error updating view time:', error);
+            }
+          }, 10000);
+        }
       } else {
         clearInterval(interval);
+        clearInterval(updateViewTimeInterval);
       }
     };
 
-    // Start the timer when component mounts
     handleVisibilityChange();
-    
-    // Add visibility change listener
     document.addEventListener("visibilitychange", handleVisibilityChange);
 
-    // Cleanup on unmount
     return () => {
       clearInterval(interval);
+      clearInterval(updateViewTimeInterval);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, []);
+  }, [isRegistered, walletAddress, id]);
 
   useEffect(() => {
     async function fetchVideoDetails() {
@@ -64,6 +87,35 @@ export default function CourseDetail() {
 
     fetchVideoDetails();
   }, [id]);
+
+  useEffect(() => {
+    const fetchCourseDetailsForUser = async () => {
+      if (!walletAddress || !id) return;
+
+      try {
+        const response = await fetch('/api/get-user-course-details', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ userId: walletAddress.toLowerCase(), courseId: id }),
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+          setCourseDetails(data);
+          setIsRegistered(true);
+        } else {
+          setCourseDetails(null);
+          setIsRegistered(false);
+        }
+      } catch (error) {
+        console.error('Error fetching course details:', error);
+      }
+    };
+
+    fetchCourseDetailsForUser();
+  }, [walletAddress, id]);
 
   const handleLogin = async (userId) => {
     try {
@@ -262,9 +314,11 @@ export default function CourseDetail() {
 
                 {/* Action Buttons */}
                 <div className="space-y-4">
-                  <Button className="w-full" size="lg" onClick={handleRegister} disabled={!walletAddress || isRegistered}>
-                    {isRegistered ? 'Registered' : 'Register Now'}
-                  </Button>
+                  {!isRegistered && (
+                    <Button className="w-full" size="lg" onClick={handleRegister} disabled={!walletAddress}>
+                      Register Now
+                    </Button>
+                  )}
                   
                   <Button 
                     variant="outline" 

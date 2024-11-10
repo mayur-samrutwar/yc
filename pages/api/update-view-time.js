@@ -16,11 +16,11 @@ export default async function handler(req, res) {
     
     const result = await db.collection('users').updateOne(
       { 
-        _id: userId,
+        userId: userId,
         'courses.courseId': courseId 
       },
       { 
-        $inc: { 'courses.$.viewTime': 10 } 
+        $inc: { 'courses.$.timeSpent': 10 } 
       }
     );
 
