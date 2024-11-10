@@ -2,12 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Star } from 'lucide-react';
 import Navbar from '@/components/Navbar';
+import { useRouter } from 'next/router';
 
 export default function CourseDetail() {
   const [rating, setRating] = useState(0);
   const [hover, setHover] = useState(0);
   const [timeSpent, setTimeSpent] = useState(0);
-  
+  const [videoDetails, setVideoDetails] = useState(null);
+  const [error, setError] = useState(null);
+  const router = useRouter();
+  const { id } = router.query;
+
   useEffect(() => {
     let interval;
 
@@ -34,6 +39,29 @@ export default function CourseDetail() {
     };
   }, []);
 
+  useEffect(() => {
+    async function fetchVideoDetails() {
+      if (!id) return;
+      
+      try {
+        const response = await fetch(`/api/get-course-details?id=${id}`);
+        const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to fetch video details');
+        }
+        
+        setVideoDetails(data);
+        setError(null);
+      } catch (err) {
+        setError(err.message);
+        setVideoDetails(null);
+      }
+    }
+
+    fetchVideoDetails();
+  }, [id]);
+
   // Format seconds into MM:SS
   const formatTime = (seconds) => {
     const minutes = Math.floor(seconds / 60);
@@ -41,11 +69,36 @@ export default function CourseDetail() {
     return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
+  if (error) {
+    return (
+      <div className="min-h-screen bg-background relative">
+        <Navbar />
+        <main className="container mx-auto px-4 py-8">
+          <div className="text-center text-red-500">
+            <h1 className="text-2xl font-semibold mb-4">Error</h1>
+            <p>{error}</p>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  if (!videoDetails) {
+    return (
+      <div className="min-h-screen bg-background relative">
+        <Navbar />
+        <main className="container mx-auto px-4 py-8">
+          <div className="text-center">
+            <p>Loading...</p>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  // Replace the hardcoded course object with dynamic data
   const course = {
-    title: "Advanced Web Development with React & Next.js",
-    instructor: "John Doe",
-    description: "Learn advanced concepts in web development using React and Next.js. This comprehensive course covers everything from basic concepts to advanced patterns and best practices.",
-    videoId: "salY_Sm6mv4",
+    ...videoDetails,
     rating: 4.8,
     students: "12,345",
     category: "Web Development"
@@ -76,7 +129,7 @@ export default function CourseDetail() {
               <h1 className="text-2xl font-semibold tracking-tight">{course.title}</h1>
               
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <span className="font-medium text-foreground">{course.instructor}</span>
+                <span className="font-medium text-foreground">{course.channelName}</span>
                 <span>•</span>
                 <span>{course.category}</span>
                 <span>•</span>
